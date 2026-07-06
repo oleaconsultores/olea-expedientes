@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Olea Abogados — Sistema de Expedientes</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#eef0f6;color:#2d3748;display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:#0f2540;color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;top:0;left:0;z-index:100;box-shadow:2px 0 12px rgba(0,0,0,.25);}
+.logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.logo-title{font-size:15px;font-weight:800;color:#e8b84b;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:3px;letter-spacing:.3px;text-transform:uppercase;}
+.nav{flex:1;padding:10px 0;overflow-y:auto;}
+.nav-sec{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.25);padding:14px 18px 5px;letter-spacing:1.2px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;font-size:12.5px;color:rgba(255,255,255,.65);transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nav-item.active{background:rgba(232,184,75,.14);color:#e8b84b;border-left-color:#e8b84b;font-weight:600;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.8;}
+.nav-item.active svg{opacity:1;}
+.sidebar-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.3);}
+.sidebar-foot b{color:rgba(255,255,255,.5);}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-title{font-size:15px;font-weight:700;color:#0f2540;}
+.badge-count{background:#e8b84b;color:#0f2540;font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;line-height:1;}
+.btn-primary{background:#0f2540;color:#fff;}
+.btn-primary:hover{background:#1a3a5c;}
+.btn-gold{background:#e8b84b;color:#0f2540;}
+.btn-gold:hover{background:#d9a93d;}
+.btn-outline{background:#fff;color:#4a5568;border:1px solid #dde1e7;}
+.btn-outline:hover{background:#f7fafc;border-color:#b0b8c4;}
+.btn-danger{background:#fff5f5;color:#c53030;border:1px solid #fed7d7;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.content{padding:22px 24px;flex:1;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:#fff;border-radius:10px;padding:18px;border:1px solid #e8ecf0;}
+.kpi.dark{background:#0f2540;}
+.kpi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.kpi-icon svg{width:18px;height:18px;}
+.kpi-icon.b{background:#e8f0fb;color:#2563eb;}
+.kpi-icon.g{background:#e6f9f0;color:#059669;}
+.kpi-icon.o{background:#fff7e6;color:#d97706;}
+.kpi-icon.p{background:#f3e8ff;color:#7c3aed;}
+.kpi-lbl{font-size:11px;font-weight:600;color:#718096;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.kpi.dark .kpi-lbl{color:rgba(255,255,255,.45);}
+.kpi-val{font-size:26px;font-weight:800;color:#0f2540;line-height:1;}
+.kpi.dark .kpi-val{color:#e8b84b;}
+.kpi-sub{font-size:11px;color:#a0aec0;margin-top:3px;}
+.kpi.dark .kpi-sub{color:rgba(255,255,255,.3);}
+
+/* CARDS */
+.card{background:#fff;border-radius:10px;border:1px solid #e8ecf0;margin-bottom:16px;overflow:hidden;}
+.card-hd{padding:14px 18px;border-bottom:1px solid #f0f2f8;display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:13px;font-weight:700;color:#0f2540;}
+.card-bd{padding:18px;}
+
+/* GRID LAYOUTS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:300px 1fr;gap:16px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:9px 14px;font-size:10px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #eef0f6;white-space:nowrap;background:#fafbfc;}
+td{padding:11px 14px;border-bottom:1px solid #f4f6fb;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr.row-link{cursor:pointer;}
+tr.row-link:hover td{background:#f8fbff;}
+
+/* BADGES */
+.b{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+.b-civil{background:#dbeafe;color:#1d4ed8;}
+.b-amparo{background:#ede9fe;color:#6d28d9;}
+.b-familiar{background:#d1fae5;color:#065f46;}
+.b-admin{background:#fef3c7;color:#92400e;}
+.b-tfja{background:#fce7f3;color:#9d174d;}
+.b-activo{background:#d1fae5;color:#065f46;}
+.b-concluido{background:#f1f5f9;color:#64748b;}
+.b-suspendido{background:#fef3c7;color:#92400e;}
+.b-dot::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* SEARCH BAR */
+.search-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dde1e7;border-radius:7px;padding:7px 11px;flex:1;min-width:200px;}
+.search-box input{border:none;outline:none;font-size:12.5px;color:#2d3748;background:transparent;width:100%;}
+.search-box input::placeholder{color:#a0aec0;}
+.search-box svg{color:#b0b8c4;flex-shrink:0;}
+select.fsel{background:#fff;border:1px solid #dde1e7;border-radius:7px;padding:7px 10px;font-size:12px;color:#4a5568;outline:none;cursor:pointer;}
+select.fsel:focus{border-color:#0f2540;}
+
+/* DETAIL HEADER */
+.det-header{background:linear-gradient(135deg,#0f2540 0%,#1a3a5c 100%);color:#fff;padding:22px 24px;margin:-22px -24px 22px;border-bottom:3px solid #e8b84b;}
+.det-exp-num{font-size:24px;font-weight:800;color:#e8b84b;margin-bottom:3px;}
+.det-vs{font-size:13px;color:rgba(255,255,255,.75);line-height:1.4;margin-bottom:14px;}
+.det-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.det-chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:11px;color:rgba(255,255,255,.8);}
+.det-chip strong{color:#fff;display:block;font-size:10px;font-weight:700;opacity:.6;text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px;}
+
+/* TIMELINE */
+.timeline{padding:2px 0;}
+.tl-item{display:flex;gap:14px;padding-bottom:18px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:#0f2540;border:2px solid #0f2540;flex-shrink:0;margin-top:2px;}
+.tl-dot.gold{background:#e8b84b;border-color:#e8b84b;}
+.tl-line{width:2px;background:#eef0f6;flex:1;margin-top:4px;}
+.tl-item:last-child .tl-line{display:none;}
+.tl-body{flex:1;}
+.tl-date{font-size:11px;font-weight:700;color:#718096;margin-bottom:5px;}
+.tl-fecha-notif{font-size:10px;color:#b0b8c4;margin-left:6px;font-weight:400;}
+.tl-text{font-size:12.5px;color:#374151;line-height:1.55;background:#f8fafc;padding:10px 12px;border-radius:7px;border:1px solid #eef0f6;}
+.tl-nota{font-size:11px;color:#9ca3af;margin-top:5px;font-style:italic;padding-left:4px;}
+
+/* STAT MINI */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-mini{background:#f8fafc;border-radius:8px;padding:13px;text-align:center;border:1px solid #eef0f6;}
+.stat-val{font-size:19px;font-weight:800;color:#0f2540;line-height:1;}
+.stat-lbl{font-size:10px;color:#9ca3af;margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+
+/* CHART */
+.chart-box{position:relative;height:230px;}
+.chart-box-tall{position:relative;height:310px;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.2);}
+.modal-hd{padding:18px 22px;border-bottom:1px solid #eef0f6;display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:14px;font-weight:700;color:#0f2540;}
+.modal-close{cursor:pointer;color:#9ca3af;background:none;border:none;font-size:22px;line-height:1;padding:0 2px;}
+.modal-close:hover{color:#374151;}
+.modal-bd{padding:22px;}
+.modal-ft{padding:14px 22px;border-top:1px solid #eef0f6;display:flex;justify-content:flex-end;gap:8px;}
+
+/* FORM */
+.fg{margin-bottom:14px;}
+.fl{display:block;font-size:11px;font-weight:700;color:#4a5568;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.fc{width:100%;padding:8px 11px;border:1px solid #dde1e7;border-radius:7px;font-size:12.5px;color:#2d3748;background:#fff;outline:none;transition:border-color .15s;}
+.fc:focus{border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,.07);}
+textarea.fc{min-height:90px;resize:vertical;font-family:inherit;line-height:1.5;}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:#0f2540;color:#fff;padding:11px 16px;border-radius:8px;font-size:12.5px;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{background:#065f46;}
+.toast.err{background:#991b1b;}
+
+/* DATA ROW */
+.data-row{display:flex;flex-direction:column;gap:10px;font-size:12.5px;}
+.data-item dt{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;}
+.data-item dd{color:#374151;line-height:1.4;}
+.nota-box{margin-top:2px;padding:10px 12px;background:#fffbeb;border-radius:7px;border:1px solid #fde68a;}
+.nota-box .nota-title{font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+.nota-box p{font-size:12.5px;color:#78350f;}
+
+/* MISC */
+.empty{text-align:center;padding:44px 20px;color:#b0b8c4;}
+.empty svg{width:44px;height:44px;margin-bottom:10px;opacity:.4;}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fw7{font-weight:700;}
+.color-navy{color:#0f2540;}
+.color-gold{color:#d97706;}
+
+/* MOBILE */
+@media(max-width:860px){
+  .sidebar{width:52px;}
+  .logo h1,.logo p,.nav-item span,.nav-sec,.sidebar-foot b,.sidebar-foot div:last-child{display:none;}
+  .main{margin-left:52px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .g2,.g3{grid-template-columns:1fr;}
+  .fg-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚖ OLEA ABOGADOS</div>
+    <div class="logo-sub">Sistema de Expedientes</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">Principal</div>
+    <div class="nav-item active" data-view="dashboard" onclick="nav('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-view="expedientes" onclick="nav('expedientes',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span>Expedientes</span>
+    </div>
+    <div class="nav-item" data-view="acuerdos" onclick="nav('acuerdos',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Todos los acuerdos</span>
+    </div>
+    <div class="nav-item" data-view="estadisticas" onclick="nav('estadisticas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      <span>Estadísticas</span>
+    </div>
+    <div class="nav-sec">Acciones rápidas</div>
+    <div class="nav-item" onclick="openModal('m-acuerdo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Agregar acuerdo</span>
+    </div>
+    <div class="nav-item" onclick="openModal('m-exp')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      <span>Nuevo expediente</span>
+    </div>
+    <div class="nav-sec">Exportar</div>
+    <div class="nav-item" onclick="dlJSON()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Exportar JSON</span>
+    </div>
+    <div class="nav-item" onclick="dlCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>Exportar CSV</span>
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <b>oleaabogados@gmail.com</b>
+    <div>v1.0 · Jul 2026</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <span class="badge-count" id="topbar-badge" style="display:none;"></span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-outline btn-sm" onclick="openModal('m-acuerdo')">+ Acuerdo</button>
+      <button class="btn btn-gold btn-sm" onclick="openModal('m-exp')">+ Expediente</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div id="v-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi dark">
+          <div class="kpi-lbl">Expedientes</div>
+          <div class="kpi-val" id="kpi-exp">—</div>
+          <div class="kpi-sub" id="kpi-exp-sub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="kpi-lbl">Total acuerdos</div>
+          <div class="kpi-val" id="kpi-ac">—</div>
+          <div class="kpi-sub" id="kpi-ac-sub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="kpi-lbl">Más activo</div>
+          <div class="kpi-val" style="font-size:17px;line-height:1.2;" id="kpi-top">—</div>
+          <div class="kpi-sub" id="kpi-top-sub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-icon o"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="kpi-lbl">Último acuerdo</div>
+          <div class="kpi-val" style="font-size:17px;line-height:1.2;" id="kpi-ult">—</div>
+          <div class="kpi-sub" id="kpi-ult-sub">—</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Últimos acuerdos</span><a onclick="nav('acuerdos')" style="font-size:11px;color:#2563eb;cursor:pointer;">Ver todos →</a></div>
+          <div id="dash-recientes"></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Actividad mensual (2026)</span></div>
+          <div class="card-bd"><div class="chart-box"><canvas id="ch-mes"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">
+          <span class="card-title">Expedientes activos</span>
+          <button class="btn btn-outline btn-sm" onclick="nav('expedientes')">Ver todos</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Expediente</th><th>Partes</th><th>Juzgado / Tribunal</th><th>Materia</th><th>Acuerdos</th><th>Último</th><th>Status</th></tr></thead>
+            <tbody id="dash-exp-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EXPEDIENTES ══ -->
+    <div id="v-expedientes" style="display:none;">
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="exp-q" placeholder="Buscar expediente, cliente, juzgado…" oninput="renderExp()">
+        </div>
+        <select class="fsel" id="exp-mat" onchange="renderExp()">
+          <option value="">Toda materia</option>
+          <option value="civil">Civil</option>
+          <option value="amparo">Amparo</option>
+          <option value="familiar">Familiar</option>
+          <option value="admin">Administrativo</option>
+          <option value="tfja">TFJA</option>
+        </select>
+        <select class="fsel" id="exp-status" onchange="renderExp()">
+          <option value="">Todo status</option>
+          <option value="activo">Activo</option>
+          <option value="concluido">Concluido</option>
+          <option value="suspendido">Suspendido</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Expediente</th><th>Actor</th><th>Demandado</th><th>Juzgado</th><th>Materia</th><th style="text-align:center;">Acuerdos</th><th>Último</th><th>Status</th><th></th></tr></thead>
+            <tbody id="exp-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DETAIL ══ -->
+    <div id="v-detail" style="display:none;">
+      <div class="det-header">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="det-exp-num" id="det-num">—</div>
+            <div class="det-vs" id="det-vs">—</div>
+            <div class="det-chips" id="det-chips"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;">
+            <button class="btn btn-outline btn-sm" onclick="nav('expedientes')" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);">← Volver</button>
+            <button class="btn btn-gold btn-sm" onclick="openModalAcuerdo()">+ Acuerdo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div>
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Resumen</span></div>
+            <div class="card-bd"><div class="stat-grid" id="det-stats"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><span class="card-title">Datos del asunto</span></div>
+            <div class="card-bd"><div class="data-row" id="det-data"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <span class="card-title">Historial de acuerdos</span>
+            <span style="font-size:11px;color:#9ca3af;" id="det-cnt">—</span>
+          </div>
+          <div class="card-bd">
+            <div class="timeline" id="det-tl"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ACUERDOS ══ -->
+    <div id="v-acuerdos" style="display:none;">
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="ac-q" placeholder="Buscar en acuerdos…" oninput="renderAc()">
+        </div>
+        <select class="fsel" id="ac-exp" onchange="renderAc()"><option value="">Todos los expedientes</option></select>
+        <select class="fsel" id="ac-mat" onchange="renderAc()">
+          <option value="">Toda materia</option>
+          <option value="civil">Civil</option>
+          <option value="amparo">Amparo</option>
+          <option value="familiar">Familiar</option>
+          <option value="admin">Administrativo</option>
+          <option value="tfja">TFJA</option>
+        </select>
+        <select class="fsel" id="ac-ord" onchange="renderAc()">
+          <option value="desc">Más reciente primero</option>
+          <option value="asc">Más antiguo primero</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Expediente</th><th>Fecha acuerdo</th><th>Notif.</th><th>Materia</th><th>Juzgado</th><th>Texto del acuerdo</th></tr></thead>
+            <tbody id="ac-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ESTADÍSTICAS ══ -->
+    <div id="v-estadisticas" style="display:none;">
+      <div class="g2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Acuerdos por mes (2026)</span></div>
+          <div class="card-bd"><div class="chart-box"><canvas id="ch-mes2"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Distribución por materia</span></div>
+          <div class="card-bd"><div class="chart-box"><canvas id="ch-mat"></canvas></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Acuerdos por expediente</span></div>
+        <div class="card-bd"><div class="chart-box-tall"><canvas id="ch-exp"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Tabla resumen por expediente</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Expediente</th><th>Actor</th><th>Materia</th><th>Status</th><th style="text-align:center;">Acuerdos</th><th>Primer acuerdo</th><th>Último acuerdo</th><th style="text-align:center;">Días</th><th style="text-align:center;">Frec./mes</th></tr></thead>
+            <tbody id="stat-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ══ MODAL ACUERDO ══ -->
+<div class="overlay" id="m-acuerdo">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Agregar acuerdo</div>
+      <button class="modal-close" onclick="closeModal('m-acuerdo')">×</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg">
+        <label class="fl">Expediente *</label>
+        <select class="fc" id="nac-exp"></select>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fl">Fecha del acuerdo *</label>
+          <input type="date" class="fc" id="nac-fa">
+        </div>
+        <div class="fg">
+          <label class="fl">Fecha notificación correo</label>
+          <input type="date" class="fc" id="nac-fc">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Texto completo del acuerdo *</label>
+        <textarea class="fc" id="nac-txt" placeholder="Pega aquí el texto completo del acuerdo…"></textarea>
+      </div>
+      <div class="fg">
+        <label class="fl">Notas internas (opcional)</label>
+        <input type="text" class="fc" id="nac-nota" placeholder="Pendientes, observaciones, estrategia…">
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('m-acuerdo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAcuerdo()">Guardar acuerdo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL EXPEDIENTE ══ -->
+<div class="overlay" id="m-exp">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Nuevo expediente</div>
+      <button class="modal-close" onclick="closeModal('m-exp')">×</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fl">Número de expediente *</label>
+          <input type="text" class="fc" id="nexp-num" placeholder="ej. 123/2026">
+        </div>
+        <div class="fg">
+          <label class="fl">Materia *</label>
+          <select class="fc" id="nexp-mat">
+            <option value="civil">Civil</option>
+            <option value="amparo">Amparo</option>
+            <option value="familiar">Familiar</option>
+            <option value="admin">Administrativo</option>
+            <option value="tfja">TFJA</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Actor / Quejoso / Demandante *</label>
+        <input type="text" class="fc" id="nexp-actor" placeholder="Nombre o razón social">
+      </div>
+      <div class="fg">
+        <label class="fl">Demandado / Autoridad responsable *</label>
+        <input type="text" class="fc" id="nexp-dem" placeholder="Nombre o razón social">
+      </div>
+      <div class="fg">
+        <label class="fl">Juzgado / Tribunal</label>
+        <input type="text" class="fc" id="nexp-juz" placeholder="ej. Juzgado 5 Civil CDMX">
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label class="fl">Status</label>
+          <select class="fc" id="nexp-status">
+            <option value="activo">Activo</option>
+            <option value="suspendido">Suspendido</option>
+            <option value="concluido">Concluido</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Notas internas</label>
+          <input type="text" class="fc" id="nexp-nota" placeholder="Observaciones">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-outline" onclick="closeModal('m-exp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveExp()">Crear expediente</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+//  DATOS INICIALES
+// ════════════════════════════════════════
+
+const EXPS_INIT = [
+  {id:'407/2025', mat:'civil', actor:'Garza Paredes Enrique Javier y Ordorica Amezcua Tannia Mindy', dem:'Imaginacion 440 S.A. de C.V. y Actividades Infantiles Chiquilines S.A. de C.V.', juz:'Ciudad de México > Juzgado 54 Civil', status:'activo', nota:''},
+  {id:'417/2020', mat:'civil', actor:'Palma Norte S.A. de C.V.', dem:'Ricardo Valadez Peña', juz:'Ciudad de México > Juzgado 51 Civil', status:'activo', nota:''},
+  {id:'387/2024', mat:'civil', actor:'Rialva S.A. de C.V.', dem:'Residencial H 1837 B A.C. y Cabello Estrada Omar Karim y Varver Smeke Victor', juz:'Ciudad de México > Juzgado 7 Civil', status:'activo', nota:''},
+  {id:'630/2024', mat:'civil', actor:'Flores Lopez Angel', dem:'Serrano Perez Humberto y Rialva Sociedad Anonima de Capital Variable y Director del Registro Publico de la Propiedad y de Comercio de la Ciudad de Mexico', juz:'Ciudad de México > Juzgado 32 Civil', status:'activo', nota:''},
+  {id:'347/2020', mat:'civil', actor:'Asesores Automotrices Asociados S.A. de C.V.', dem:'Muñoz Valencia Martin Santos', juz:'Ciudad de México > Juzgado 42 Civil', status:'activo', nota:''},
+  {id:'1645/2025', mat:'amparo', actor:'Grupo Comonfort, S.A. de C.V. (por conducto Rubén Colín Martínez)', dem:'Director del Instituto de Verificación Administrativa de la Ciudad de México (INVEA)', juz:'Primer Circuito > Juzgado Sexto de Distrito en Materia Administrativa CDMX', status:'concluido', nota:'Sobreseído definitivamente — sentencia 05-mar-2026'},
+  {id:'11/2025', mat:'amparo', actor:'Teresa Orozco Mota', dem:'Juez Cuadragésimo Segundo de lo Civil de Proceso Escrito de la Ciudad de México', juz:'Séptimo Circuito > Juzgado Décimo Segundo de Distrito en el Estado de Veracruz', status:'concluido', nota:'Sobreseído — falta de interés jurídico (divorcio administrativo previo)'},
+  {id:'1002/2024', mat:'amparo', actor:'Rialva, Sociedad Anónima de Capital Variable', dem:'Juez Cuarto de lo Civil del Tribunal Superior de Justicia de la Ciudad de México', juz:'Primer Circuito > Juzgado Noveno de Distrito en Materia Civil CDMX', status:'activo', nota:'Remitido para sentencia al J. 1° Distrito Centro Auxiliar Décima Región, Saltillo, Coahuila'},
+  {id:'1/2025', mat:'amparo', actor:'Luis Francisco Rebosa Álvarez', dem:'Tercera Sala Familiar del Tribunal Superior de Justicia de la Ciudad de México y Otros', juz:'Primer Circuito > Cuarto Tribunal Colegiado en Materia Civil del Primer Circuito', status:'concluido', nota:'Archivado como concluido — ejecutoria cumplida 20-mar-2026'},
+  {id:'267/2020', mat:'familiar', actor:'Alatorre Barrera Jessica del Carmen', dem:'Snell Torres Jose Antonio', juz:'Ciudad de México > Juzgado 10 Familiar', status:'activo', nota:''},
+  {id:'12736/25-17-05-3', mat:'tfja', actor:'Jardín de Niños Aprendo Jugando, S.C.', dem:'Director de Coordinación para el Diálogo Social de la Oficina de Representación Federal del Trabajo en la CDMX Zona Norte — STPS', juz:'Quinta Sala Regional Metropolitana — Tribunal Federal de Justicia Administrativa (TFJA)', status:'activo', nota:''},
+];
+
+const ACS_INIT = [
+  {id:'407/2025-20260623',exp:'407/2025',fa:'2026-06-23',fc:'2026-06-23',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260617',exp:'407/2025',fa:'2026-06-17',fc:'2026-06-17',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260610',exp:'407/2025',fa:'2026-06-10',fc:'2026-06-10',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260602',exp:'407/2025',fa:'2026-06-02',fc:'2026-06-02',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260527',exp:'407/2025',fa:'2026-05-27',fc:'2026-05-27',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260519',exp:'407/2025',fa:'2026-05-19',fc:'2026-05-19',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260427',exp:'407/2025',fa:'2026-04-27',fc:'2026-04-27',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260406',exp:'407/2025',fa:'2026-04-06',fc:'2026-04-06',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260324',exp:'407/2025',fa:'2026-03-24',fc:'2026-03-24',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Ord. Civil. Acuerdo del expediente 407/2025.',nota:''},
+  {id:'407/2025-20260306',exp:'407/2025',fa:'2026-03-06',fc:'2026-03-06',mat:'civil',juz:'J. 54 Civil CDMX',txt:'Garza Paredes Enrique Javier y Ordorica Amezcua Tannia Mindy vs. Imaginacion 440 S.A. de C.V. y Actividades Infantiles Chiquilines S.A. de C.V. Ord. Civil 2 Acdos. Num. Exp. 407/2025.',nota:''},
+  {id:'417/2020-20260622',exp:'417/2020',fa:'2026-06-22',fc:'2026-06-22',mat:'civil',juz:'J. 51 Civil CDMX',txt:'Acuerdo del expediente 417/2020.',nota:''},
+  {id:'417/2020-20260612',exp:'417/2020',fa:'2026-06-12',fc:'2026-06-12',mat:'civil',juz:'J. 51 Civil CDMX',txt:'Acuerdo del expediente 417/2020.',nota:''},
+  {id:'417/2020-20260521',exp:'417/2020',fa:'2026-05-21',fc:'2026-05-21',mat:'civil',juz:'J. 51 Civil CDMX',txt:'Acuerdo del expediente 417/2020.',nota:''},
+  {id:'417/2020-20260514',exp:'417/2020',fa:'2026-05-14',fc:'2026-05-14',mat:'civil',juz:'J. 51 Civil CDMX',txt:'Acuerdo del expediente 417/2020.',nota:''},
+  {id:'417/2020-20260415',exp:'417/2020',fa:'2026-04-15',fc:'2026-04-15',mat:'civil',juz:'J. 51 Civil CDMX',txt:'Acuerdo del expediente 417/2020.',nota:''},
+  {id:'387/2024-20260612',exp:'387/2024',fa:'2026-06-12',fc:'2026-06-12',mat:'civil',juz:'J. 7 Civil CDMX',txt:'Acuerdo del expediente 387/2024.',nota:''},
+  {id:'387/2024-20260527',exp:'387/2024',fa:'2026-05-27',fc:'2026-05-27',mat:'civil',juz:'J. 7 Civil CDMX',txt:'Acuerdo del expediente 387/2024.',nota:''},
+  {id:'387/2024-20260514',exp:'387/2024',fa:'2026-05-14',fc:'2026-05-14',mat:'civil',juz:'J. 7 Civil CDMX',txt:'Acuerdo del expediente 387/2024.',nota:''},
+  {id:'387/2024-20260323',exp:'387/2024',fa:'2026-03-23',fc:'2026-03-23',mat:'civil',juz:'J. 7 Civil CDMX',txt:'Acuerdo del expediente 387/2024.',nota:''},
+  {id:'387/2024-20260311',exp:'387/2024',fa:'2026-03-11',fc:'2026-03-11',mat:'civil',juz:'J. 7 Civil CDMX',txt:'Rialva S.A. de C.V. vs. Residencial H 1837 B A.C. y Cabello Estrada Omar Karim y Varver Smeke Victor. Ord. Civil Acdo. I. 1 Acdo. Num. Exp. 387/2024.',nota:''},
+  {id:'630/2024-20260529',exp:'630/2024',fa:'2026-05-29',fc:'2026-05-29',mat:'civil',juz:'J. 32 Civil CDMX',txt:'Acuerdo del expediente 630/2024.',nota:''},
+  {id:'630/2024-20260506',exp:'630/2024',fa:'2026-05-06',fc:'2026-05-06',mat:'civil',juz:'J. 32 Civil CDMX',txt:'Acuerdo del expediente 630/2024.',nota:''},
+  {id:'630/2024-20260423',exp:'630/2024',fa:'2026-04-23',fc:'2026-04-23',mat:'civil',juz:'J. 32 Civil CDMX',txt:'Acuerdo del expediente 630/2024.',nota:''},
+  {id:'630/2024-20260417',exp:'630/2024',fa:'2026-04-17',fc:'2026-04-17',mat:'civil',juz:'J. 32 Civil CDMX',txt:'Acuerdo del expediente 630/2024.',nota:''},
+  {id:'630/2024-20260309',exp:'630/2024',fa:'2026-03-09',fc:'2026-03-09',mat:'civil',juz:'J. 32 Civil CDMX',txt:'Flores Lopez Angel vs. Serrano Perez Humberto y Rialva Sociedad Anonima de Capital Variable y Director del Registro Publico de la Propiedad y de Comercio de la Ciudad de Mexico. Ord. Civil Se Da Vista. 1 Acdo. Num. Exp. 630/2024.',nota:''},
+  {id:'347/2020-20260520',exp:'347/2020',fa:'2026-05-20',fc:'2026-05-20',mat:'civil',juz:'J. 42 Civil CDMX',txt:'Acuerdo del expediente 347/2020.',nota:''},
+  {id:'347/2020-20260427',exp:'347/2020',fa:'2026-04-27',fc:'2026-04-27',mat:'civil',juz:'J. 42 Civil CDMX',txt:'Acuerdo del expediente 347/2020.',nota:''},
+  {id:'347/2020-20260325',exp:'347/2020',fa:'2026-03-25',fc:'2026-03-25',mat:'civil',juz:'J. 42 Civil CDMX',txt:'Asesores Automotrices Asociados S.A. de C.V. vs. Muñoz Valencia Martin Santos. Ejecutivo Mercantil 1 Acdo. en Amparo. Num. Exp. 347/2020 Bis. 3 Cuad. de Amp. Numero 11/25 Promov. por Teresa Orozco Mota.',nota:''},
+  {id:'1645/2025-20260422',exp:'1645/2025',fa:'2026-04-22',fc:'2026-04-22',mat:'amparo',juz:'J. 6° Distrito Mat. Admin. CDMX',txt:'Sentencia causó ejecutoria, sobreseído, archivo total. Expediente 1645/2025.',nota:'CONCLUIDO — archivo total'},
+  {id:'1645/2025-20260305',exp:'1645/2025',fa:'2026-03-05',fc:'2026-03-05',mat:'amparo',juz:'J. 6° Distrito Mat. Admin. CDMX',txt:'Por lo expuesto y fundado, con apoyo además en lo dispuesto por los artículos 62, 63, 74, 217 y demás relativos y aplicables de la Ley de Amparo; se, R E S U E L V E: ÚNICO. Se sobresee en el juicio de amparo 1645/2025-VI, promovido por conducto de su apoderado Rubén Colín Martínez, por los motivos y fundamentos expuestos en el último considerando de este fallo. Notifíquese y de manera electrónica al Fiscal Ejecutivo Titular adscrito.',nota:'Sobreseimiento definitivo'},
+  {id:'11/2025-20260422',exp:'11/2025',fa:'2026-04-22',fc:'2026-04-22',mat:'amparo',juz:'J. 12° Distrito Veracruz, 7° Circ.',txt:'Recurso de queja. Acuerdo del expediente 11/2025.',nota:''},
+  {id:'11/2025-20260413',exp:'11/2025',fa:'2026-04-13',fc:'2026-04-13',mat:'amparo',juz:'J. 12° Distrito Veracruz, 7° Circ.',txt:'Causó estado sobreseído. Acuerdo del expediente 11/2025.',nota:''},
+  {id:'11/2025-20260302',exp:'11/2025',fa:'2026-03-02',fc:'2026-03-02',mat:'amparo',juz:'J. 12° Distrito Veracruz, 7° Circ.',txt:'SEXTO. Improcedencia del juicio de amparo. En el presente asunto, se actualiza la causa de improcedencia prevista en el artículo 61, fracción XII, de la Ley de Amparo, al no acreditar la persona quejosa contar con el interés jurídico necesario para acudir a esta vía constitucional en defensa del referido bien raíz. R E S U E L V E. ÚNICO. SE SOBRESEE en el presente juicio de amparo promovido por Teresa Orozco Mota, contra el acto reclamado del Juez Cuadragésimo Segundo Civil, con residencia en la Ciudad de México, por los motivos expuestos en el considerando sexto de esta sentencia. Notifíquese, vía electrónica a la quejosa, Teresa Orozco Mota, y por estrados a la tercera interesada, Asesores Automotrices Asociados, sociedad anónima de capital variable.',nota:'Sentencia definitiva — sobreseimiento'},
+  {id:'1002/2024-20260415',exp:'1002/2024',fa:'2026-04-15',fc:'2026-04-15',mat:'amparo',juz:'J. 9° Distrito Mat. Civil CDMX',txt:'Agréguese a los autos el oficio enviado. Acuerdo del expediente 1002/2024.',nota:''},
+  {id:'1002/2024-20260330',exp:'1002/2024',fa:'2026-03-27',fc:'2026-03-30',mat:'amparo',juz:'J. 9° Distrito Mat. Civil CDMX',txt:'Actor: Rialva, Sociedad Anónima de Capital Variable. Demandado: Juez Cuarto de lo Civil del Tribunal Superior de Justicia de la Ciudad de México. Ciudad de México, a veintisiete de marzo de dos mil veintiséis. Vista la certificación de cuenta, así como el estado procesal que guardan los autos, se advierte que el veintiuno de noviembre de dos mil veinticinco, se llevó a cabo la audiencia constitucional, por lo que se encuentra pendiente el dictado de la sentencia que en derecho corresponde; en tal virtud, se ordena la apertura del cuadernillo respectivo. En consecuencia, de conformidad con el oficio SECC/STCC/270/2026 de veinticinco de marzo de dos mil veintiséis, se determinó remitir al Juzgado Primero de Distrito del Centro Auxiliar de la Décima Región, con residencia en Saltillo, Coahuila de Zaragoza, el presente expediente para el apoyo en el dictado de la sentencia en auxilio de este órgano jurisdiccional, por lo que se remite el asunto en que se actúa y dos tomos; lo que se hace del conocimiento de las partes para los efectos legales conducentes. Notifíquese.',nota:'Expediente remitido a Saltillo para sentencia'},
+  {id:'1/2025-20260320',exp:'1/2025',fa:'2026-03-20',fc:'2026-03-20',mat:'amparo',juz:'4° Trib. Colegiado Mat. Civil 1° Circ.',txt:'Actor: Luis Francisco Rebosa Álvarez. Demandado: Tercera Sala Familiar del Tribunal Superior de Justicia de la Ciudad de México y Otros. Visto el estado de los autos y la certificación de cuenta, se advierte que en el plazo de quince días, las partes no interpusieron recurso de inconformidad en contra del acuerdo de dieciséis de febrero del año en curso, en el cual se tuvo por cumplida la ejecutoria de amparo dictada en el presente asunto, se declara que dicho proveído ha causado estado. Comuníquese lo anterior a las autoridades responsables, para los efectos legales a que haya lugar. Archívese el asunto como concluido. Este expediente es conservable. Notifíquese.',nota:'ARCHIVADO CONCLUIDO — ejecutoria cumplida'},
+  {id:'267/2020-20260320-A',exp:'267/2020',fa:'2026-03-20',fc:'2026-03-20',mat:'familiar',juz:'J. 10 Familiar CDMX',txt:'Alatorre Barrera Jessica del Carmen vs. Snell Torres Jose Antonio. Controversias del Orden Familiar 1 Acdo. Num. Exp. 267/2020.',nota:''},
+  {id:'267/2020-20260320-B',exp:'267/2020',fa:'2026-03-20',fc:'2026-03-20',mat:'familiar',juz:'J. 10 Familiar CDMX',txt:'Alatorre Barrera Jessica del Carmen vs. Snell Torres Jose Antonio. Controversias del Orden Familiar 1 Acdo. en Incidente. Num. Exp. 267/2020 Inc. de Cambio de Guarda y Custodia y Pensión Alimenticia.',nota:'Incidente de Cambio de Guarda y Custodia y Pensión Alimenticia'},
+  {id:'12736/25-17-05-3-20260311',exp:'12736/25-17-05-3',fa:'2026-03-11',fc:'2026-03-11',mat:'tfja',juz:'Quinta Sala Regional Metropolitana — TFJA',txt:'Acuerdo de devolución de documentos y autorizados.',nota:''},
+];
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let exps = JSON.parse(localStorage.getItem('ol_exps') || 'null') || JSON.parse(JSON.stringify(EXPS_INIT));
+let acs  = JSON.parse(localStorage.getItem('ol_acs')  || 'null') || JSON.parse(JSON.stringify(ACS_INIT));
+let curView = 'dashboard';
+let curExp  = null;
+let CH = {};
+
+function save(){
+  localStorage.setItem('ol_exps', JSON.stringify(exps));
+  localStorage.setItem('ol_acs',  JSON.stringify(acs));
+}
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+const MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESLONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function fmt(s){ if(!s) return '—'; const[y,m,d]=s.split('-'); return `${d}-${MES[+m-1]}-${y.slice(2)}`; }
+function fmtL(s){ if(!s) return '—'; const[y,m,d]=s.split('-'); return `${+d} de ${MESLONG[+m-1]} de ${y}`; }
+function daysBetween(a,b){ if(!a||!b) return 0; return Math.round((new Date(b)-new Date(a))/(864e5)); }
+
+const MAT_BADGE = {civil:'<span class="b b-civil">Civil</span>',amparo:'<span class="b b-amparo">Amparo</span>',familiar:'<span class="b b-familiar">Familiar</span>',admin:'<span class="b b-admin">Admin.</span>',tfja:'<span class="b b-tfja">TFJA</span>'};
+const STA_BADGE = {activo:'<span class="b b-activo b-dot"> Activo</span>',concluido:'<span class="b b-concluido b-dot"> Concluido</span>',suspendido:'<span class="b b-suspendido b-dot"> Suspendido</span>'};
+
+function acByExp(id){ return acs.filter(a=>a.exp===id).sort((a,b)=>b.fa.localeCompare(a.fa)); }
+function lastAc(id){ const r=acByExp(id); return r.length?r[0].fa:null; }
+function firstAc(id){ const r=acByExp(id); return r.length?r[r.length-1].fa:null; }
+function countByExp(id){ return acs.filter(a=>a.exp===id).length; }
+
+function escHTML(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+(type?type:''); void el.offsetHeight;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+const TITLES={dashboard:'Dashboard',expedientes:'Mis Expedientes',detail:'Detalle del expediente',acuerdos:'Todos los acuerdos',estadisticas:'Estadísticas'};
+
+function nav(v, el){
+  curView=v;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  else{
+    const found=document.querySelector(`[data-view="${v}"]`);
+    if(found) found.classList.add('active');
+  }
+  ['dashboard','expedientes','detail','acuerdos','estadisticas'].forEach(x=>{
+    document.getElementById('v-'+x).style.display = x===v?'block':'none';
+  });
+  document.getElementById('topbar-title').textContent=TITLES[v]||v;
+  const bc=document.getElementById('topbar-badge');
+  if(v==='expedientes'){ bc.textContent=exps.length; bc.style.display=''; }
+  else if(v==='acuerdos'){ bc.textContent=acs.length; bc.style.display=''; }
+  else bc.style.display='none';
+  if(v==='dashboard') renderDash();
+  if(v==='expedientes') renderExp();
+  if(v==='acuerdos') renderAc();
+  if(v==='estadisticas') renderStats();
+}
+
+function goDetail(id){
+  curExp=id;
+  curView='detail';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  ['dashboard','expedientes','detail','acuerdos','estadisticas'].forEach(x=>{
+    document.getElementById('v-'+x).style.display=x==='detail'?'block':'none';
+  });
+  document.getElementById('topbar-title').textContent='Expediente '+id;
+  document.getElementById('topbar-badge').style.display='none';
+  renderDetail(id);
+}
+
+// ════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════
+function renderDash(){
+  const activos=exps.filter(e=>e.status==='activo').length;
+  const concluidos=exps.filter(e=>e.status==='concluido').length;
+  document.getElementById('kpi-exp').textContent=exps.length;
+  document.getElementById('kpi-exp-sub').textContent=`${activos} activos · ${concluidos} concluidos`;
+  document.getElementById('kpi-ac').textContent=acs.length;
+  document.getElementById('kpi-ac-sub').textContent='Mar–Jun 2026';
+
+  // Top expediente
+  const topE=[...exps].sort((a,b)=>countByExp(b.id)-countByExp(a.id))[0];
+  document.getElementById('kpi-top').textContent=topE?.id||'—';
+  document.getElementById('kpi-top-sub').textContent=`${countByExp(topE?.id||'')} acuerdos`;
+
+  // Último acuerdo
+  const lastAll=[...acs].sort((a,b)=>b.fa.localeCompare(a.fa))[0];
+  document.getElementById('kpi-ult').textContent=fmt(lastAll?.fa);
+  document.getElementById('kpi-ult-sub').textContent=lastAll?.exp||'—';
+
+  // Recientes
+  const recent=[...acs].sort((a,b)=>b.fa.localeCompare(a.fa)).slice(0,7);
+  document.getElementById('dash-recientes').innerHTML=recent.map(a=>`
+    <div style="padding:10px 16px;border-bottom:1px solid #f4f6fb;display:flex;gap:10px;align-items:flex-start;cursor:pointer;" onclick="goDetail('${escHTML(a.exp)}')">
+      <div style="width:7px;height:7px;border-radius:50%;background:#0f2540;flex-shrink:0;margin-top:4px;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+          <span style="font-size:11.5px;font-weight:700;color:#0f2540;">${escHTML(a.exp)}</span>
+          ${MAT_BADGE[a.mat]||''}
+          <span style="font-size:11px;color:#b0b8c4;margin-left:auto;">${fmt(a.fa)}</span>
+        </div>
+        <div style="font-size:11.5px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHTML(a.txt)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Chart mensual
+  buildMesChart('ch-mes');
+
+  // Tabla activos
+  const tb=document.getElementById('dash-exp-tb');
+  const actList=[...exps].filter(e=>e.status==='activo').sort((a,b)=>countByExp(b.id)-countByExp(a.id));
+  tb.innerHTML=actList.map(e=>`
+    <tr class="row-link" onclick="goDetail('${escHTML(e.id)}')">
+      <td><span class="fw7 color-navy">${escHTML(e.id)}</span></td>
+      <td><div class="trunc" style="max-width:180px;" title="${escHTML(e.actor)}">${escHTML(e.actor)}</div></td>
+      <td><div class="trunc" style="max-width:180px;" title="${escHTML(e.juz)}">${escHTML(e.juz)}</div></td>
+      <td>${MAT_BADGE[e.mat]||''}</td>
+      <td style="text-align:center;font-weight:700;">${countByExp(e.id)}</td>
+      <td style="font-size:11.5px;color:#718096;white-space:nowrap;">${fmt(lastAc(e.id))}</td>
+      <td>${STA_BADGE[e.status]||''}</td>
+    </tr>
+  `).join('');
+}
+
+function buildMesChart(cid){
+  const counts=Array(12).fill(0);
+  acs.forEach(a=>{ const m=parseInt(a.fa.split('-')[1],10)-1; if(m>=0&&m<12) counts[m]++; });
+  const labels=MES.map(m=>m.charAt(0).toUpperCase()+m.slice(1));
+  if(CH[cid]) CH[cid].destroy();
+  const ctx=document.getElementById(cid);
+  if(!ctx) return;
+  CH[cid]=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data:counts,backgroundColor:counts.map((_,i)=>i===new Date().getMonth()?'#e8b84b':'#0f2540'),borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} acuerdo${c.raw!==1?'s':''}`}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#9ca3af',font:{size:10}},grid:{color:'#f4f6fb'}},x:{ticks:{color:'#9ca3af',font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+// ════════════════════════════════════════
+//  EXPEDIENTES LIST
+// ════════════════════════════════════════
+function renderExp(){
+  const q=(document.getElementById('exp-q')?.value||'').toLowerCase();
+  const mat=document.getElementById('exp-mat')?.value||'';
+  const sta=document.getElementById('exp-status')?.value||'';
+
+  const rows=[...exps]
+    .filter(e=>(!mat||e.mat===mat)&&(!sta||e.status===sta))
+    .filter(e=>!q||[e.id,e.actor,e.dem,e.juz].some(x=>x.toLowerCase().includes(q)))
+    .sort((a,b)=>(lastAc(b.id)||'').localeCompare(lastAc(a.id)||''));
+
+  const tb=document.getElementById('exp-tb');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="9" class="empty">Sin resultados</td></tr>'; return; }
+  tb.innerHTML=rows.map(e=>`
+    <tr class="row-link" onclick="goDetail('${escHTML(e.id)}')">
+      <td><span class="fw7 color-navy">${escHTML(e.id)}</span></td>
+      <td><div class="trunc" style="max-width:150px;" title="${escHTML(e.actor)}">${escHTML(e.actor)}</div></td>
+      <td><div class="trunc" style="max-width:150px;" title="${escHTML(e.dem)}">${escHTML(e.dem)}</div></td>
+      <td><div class="trunc" style="max-width:150px;" title="${escHTML(e.juz)}">${escHTML(e.juz)}</div></td>
+      <td>${MAT_BADGE[e.mat]||''}</td>
+      <td style="text-align:center;font-weight:700;">${countByExp(e.id)}</td>
+      <td style="font-size:11.5px;color:#718096;white-space:nowrap;">${fmt(lastAc(e.id))}</td>
+      <td>${STA_BADGE[e.status]||''}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();goDetail('${escHTML(e.id)}')">Ver →</button></td>
+    </tr>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  DETAIL
+// ════════════════════════════════════════
+function renderDetail(id){
+  const exp=exps.find(e=>e.id===id); if(!exp) return;
+  const expAcs=acByExp(id);
+  const first=firstAc(id), last=lastAc(id);
+  const dias=daysBetween(first,last);
+  const freqMes=dias>0 ? (expAcs.length/(dias/30)).toFixed(1) : '—';
+
+  document.getElementById('det-num').textContent='Expediente '+id;
+  document.getElementById('det-vs').innerHTML=`<strong>${escHTML(exp.actor)}</strong><br>vs.<br>${escHTML(exp.dem)}`;
+
+  document.getElementById('det-chips').innerHTML=`
+    <div class="det-chip"><strong>Materia</strong>${exp.mat.charAt(0).toUpperCase()+exp.mat.slice(1)}</div>
+    <div class="det-chip"><strong>Juzgado</strong>${escHTML(exp.juz)}</div>
+    <div class="det-chip"><strong>Status</strong>${exp.status.charAt(0).toUpperCase()+exp.status.slice(1)}</div>
+    ${exp.nota?`<div class="det-chip" style="background:rgba(232,184,75,.15);border-color:rgba(232,184,75,.3);"><strong>Nota</strong>${escHTML(exp.nota)}</div>`:''}
+  `;
+
+  document.getElementById('det-stats').innerHTML=`
+    <div class="stat-mini"><div class="stat-val">${expAcs.length}</div><div class="stat-lbl">Acuerdos</div></div>
+    <div class="stat-mini"><div class="stat-val">${fmt(last)}</div><div class="stat-lbl">Último acuerdo</div></div>
+    <div class="stat-mini"><div class="stat-val">${fmt(first)}</div><div class="stat-lbl">Primer acuerdo</div></div>
+    <div class="stat-mini"><div class="stat-val">${dias}</div><div class="stat-lbl">Días seguimiento</div></div>
+    <div class="stat-mini"><div class="stat-val">${freqMes}</div><div class="stat-lbl">Acuerdos/mes</div></div>
+    <div class="stat-mini"><div class="stat-val">${MAT_BADGE[exp.mat]||exp.mat}</div><div class="stat-lbl">Materia</div></div>
+  `;
+
+  document.getElementById('det-data').innerHTML=`
+    <dl class="data-item"><dt>Actor / Quejoso</dt><dd>${escHTML(exp.actor)}</dd></dl>
+    <dl class="data-item"><dt>Demandado / Autoridad</dt><dd>${escHTML(exp.dem)}</dd></dl>
+    <dl class="data-item"><dt>Juzgado / Tribunal</dt><dd>${escHTML(exp.juz)}</dd></dl>
+    ${exp.nota?`<dl class="data-item"><dt>Nota interna</dt><dd><div class="nota-box"><div class="nota-title">📌 Nota</div><p>${escHTML(exp.nota)}</p></div></dd></dl>`:''}
+  `;
+
+  document.getElementById('det-cnt').textContent=`${expAcs.length} acuerdo${expAcs.length!==1?'s':''}`;
+
+  const tl=document.getElementById('det-tl');
+  if(!expAcs.length){ tl.innerHTML='<div class="empty"><p>Sin acuerdos registrados</p></div>'; return; }
+  tl.innerHTML=expAcs.map((a,i)=>`
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-dot${i===0?' gold':''}"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div class="tl-body">
+        <div class="tl-date">${fmtL(a.fa)}${a.fc&&a.fc!==a.fa?`<span class="tl-fecha-notif">(notificado ${fmt(a.fc)})</span>`:''}</div>
+        <div class="tl-text">${escHTML(a.txt)}</div>
+        ${a.nota?`<div class="tl-nota">📌 ${escHTML(a.nota)}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  TODOS LOS ACUERDOS
+// ════════════════════════════════════════
+function renderAc(){
+  // Populate exp select once
+  const sel=document.getElementById('ac-exp');
+  if(sel.options.length<=1){
+    exps.forEach(e=>{ const o=document.createElement('option'); o.value=e.id; o.textContent=e.id; sel.appendChild(o); });
+  }
+  const q=(document.getElementById('ac-q')?.value||'').toLowerCase();
+  const exp=document.getElementById('ac-exp')?.value||'';
+  const mat=document.getElementById('ac-mat')?.value||'';
+  const ord=document.getElementById('ac-ord')?.value||'desc';
+
+  let rows=[...acs]
+    .filter(a=>(!exp||a.exp===exp)&&(!mat||a.mat===mat))
+    .filter(a=>!q||[a.exp,a.txt,a.juz].some(x=>x.toLowerCase().includes(q)));
+  rows.sort((a,b)=>ord==='desc'?b.fa.localeCompare(a.fa):a.fa.localeCompare(b.fa));
+
+  const tb=document.getElementById('ac-tb');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="6" class="empty">Sin resultados</td></tr>'; return; }
+  tb.innerHTML=rows.map(a=>`
+    <tr>
+      <td><span class="fw7 color-navy" style="cursor:pointer;" onclick="goDetail('${escHTML(a.exp)}')">${escHTML(a.exp)}</span></td>
+      <td style="font-size:11.5px;color:#718096;white-space:nowrap;">${fmt(a.fa)}</td>
+      <td style="font-size:11.5px;color:#b0b8c4;white-space:nowrap;">${a.fc&&a.fc!==a.fa?fmt(a.fc):'—'}</td>
+      <td>${MAT_BADGE[a.mat]||''}</td>
+      <td style="font-size:11.5px;color:#718096;max-width:140px;" class="trunc" title="${escHTML(a.juz)}">${escHTML(a.juz)}</td>
+      <td style="font-size:12px;color:#374151;max-width:320px;">${escHTML(a.txt.length>180?a.txt.slice(0,180)+'…':a.txt)}</td>
+    </tr>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  ESTADÍSTICAS
+// ════════════════════════════════════════
+function renderStats(){
+  buildMesChart('ch-mes2');
+
+  // Materia
+  const mc={civil:0,amparo:0,familiar:0,admin:0,tfja:0};
+  acs.forEach(a=>{ if(mc[a.mat]!==undefined) mc[a.mat]++; });
+  if(CH['ch-mat']) CH['ch-mat'].destroy();
+  const ctxM=document.getElementById('ch-mat');
+  if(ctxM) CH['ch-mat']=new Chart(ctxM,{
+    type:'doughnut',
+    data:{labels:['Civil','Amparo','Familiar','Admin.','TFJA'],datasets:[{data:[mc.civil,mc.amparo,mc.familiar,mc.admin,mc.tfja],backgroundColor:['#1d4ed8','#6d28d9','#059669','#d97706','#9d174d'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,boxWidth:12}}}}
+  });
+
+  // Por expediente
+  const sortedE=[...exps].sort((a,b)=>countByExp(b.id)-countByExp(a.id));
+  if(CH['ch-exp']) CH['ch-exp'].destroy();
+  const ctxE=document.getElementById('ch-exp');
+  if(ctxE) CH['ch-exp']=new Chart(ctxE,{
+    type:'bar',
+    data:{labels:sortedE.map(e=>e.id),datasets:[{label:'Acuerdos',data:sortedE.map(e=>countByExp(e.id)),backgroundColor:sortedE.map(e=>e.status==='concluido'?'#cbd5e1':'#0f2540'),borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} acuerdo${c.raw!==1?'s':''}`}}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,color:'#9ca3af',font:{size:10}},grid:{color:'#f4f6fb'}},y:{ticks:{color:'#374151',font:{size:11}},grid:{display:false}}}}
+  });
+
+  // Tabla resumen
+  const tb=document.getElementById('stat-tb');
+  tb.innerHTML=sortedE.map(e=>{
+    const n=countByExp(e.id);
+    const first=firstAc(e.id), last=lastAc(e.id);
+    const dias=daysBetween(first,last);
+    const freq=dias>0?(n/(dias/30)).toFixed(1):'—';
+    return `<tr>
+      <td><span class="fw7 color-navy" style="cursor:pointer;" onclick="goDetail('${escHTML(e.id)}')">${escHTML(e.id)}</span></td>
+      <td><div class="trunc" style="max-width:160px;" title="${escHTML(e.actor)}">${escHTML(e.actor)}</div></td>
+      <td>${MAT_BADGE[e.mat]||''}</td>
+      <td>${STA_BADGE[e.status]||''}</td>
+      <td style="text-align:center;font-weight:700;">${n}</td>
+      <td style="font-size:11.5px;color:#718096;white-space:nowrap;">${fmt(first)}</td>
+      <td style="font-size:11.5px;color:#718096;white-space:nowrap;">${fmt(last)}</td>
+      <td style="text-align:center;font-size:12px;">${dias}</td>
+      <td style="text-align:center;font-size:12px;">${freq}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  MODALS
+// ════════════════════════════════════════
+function openModal(id){
+  if(id==='m-acuerdo'){
+    const sel=document.getElementById('nac-exp');
+    sel.innerHTML=exps.map(e=>`<option value="${escHTML(e.id)}">${escHTML(e.id)} — ${e.actor.slice(0,45)}</option>`).join('');
+    if(curExp) sel.value=curExp;
+    const today=new Date().toISOString().slice(0,10);
+    document.getElementById('nac-fa').value=today;
+    document.getElementById('nac-fc').value=today;
+    document.getElementById('nac-txt').value='';
+    document.getElementById('nac-nota').value='';
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModalAcuerdo(){ openModal('m-acuerdo'); }
+
+document.querySelectorAll('.overlay').forEach(el=>{
+  el.addEventListener('click',e=>{ if(e.target===el) el.classList.remove('open'); });
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(el=>el.classList.remove('open')); });
+
+function saveAcuerdo(){
+  const expId=document.getElementById('nac-exp').value;
+  const fa=document.getElementById('nac-fa').value;
+  const fc=document.getElementById('nac-fc').value;
+  const txt=document.getElementById('nac-txt').value.trim();
+  const nota=document.getElementById('nac-nota').value.trim();
+  if(!expId||!fa||!txt){ toast('Completa expediente, fecha y texto del acuerdo','err'); return; }
+  const expObj=exps.find(e=>e.id===expId);
+  const uid=expId+'-'+fa.replace(/-/g,'')+'_'+Math.random().toString(36).slice(2,6);
+  acs.push({id:uid,exp:expId,fa,fc:fc||fa,mat:expObj?.mat||'civil',juz:expObj?.juz||'',txt,nota});
+  save();
+  closeModal('m-acuerdo');
+  toast('Acuerdo guardado correctamente','ok');
+  if(curView==='detail'&&curExp===expId) renderDetail(expId);
+  else if(curView==='dashboard') renderDash();
+  else if(curView==='acuerdos') renderAc();
+  else if(curView==='estadisticas') renderStats();
+}
+
+function saveExp(){
+  const num=document.getElementById('nexp-num').value.trim();
+  const mat=document.getElementById('nexp-mat').value;
+  const actor=document.getElementById('nexp-actor').value.trim();
+  const dem=document.getElementById('nexp-dem').value.trim();
+  const juz=document.getElementById('nexp-juz').value.trim();
+  const status=document.getElementById('nexp-status').value;
+  const nota=document.getElementById('nexp-nota').value.trim();
+  if(!num||!actor||!dem){ toast('Completa número de expediente, actor y demandado','err'); return; }
+  if(exps.find(e=>e.id===num)){ toast('Ese número de expediente ya existe','err'); return; }
+  exps.push({id:num,mat,actor,dem,juz,status,nota});
+  save();
+  closeModal('m-exp');
+  ['nexp-num','nexp-actor','nexp-dem','nexp-juz','nexp-nota'].forEach(id=>{ document.getElementById(id).value=''; });
+  toast('Expediente creado','ok');
+  if(curView==='expedientes') renderExp();
+  else if(curView==='dashboard') renderDash();
+}
+
+// ════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════
+function dlJSON(){
+  const data={
+    metadata:{exportado:new Date().toISOString(),total_expedientes:exps.length,total_acuerdos:acs.length},
+    expedientes:exps,
+    acuerdos:acs
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Historial_Acuerdos_Olea_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); toast('JSON exportado','ok');
+}
+
+function dlCSV(){
+  const head='Expediente,Fecha Acuerdo,Fecha Correo,Materia,Juzgado,Actor,Demandado,Texto,Notas';
+  const rows=[...acs].sort((a,b)=>b.fa.localeCompare(a.fa)).map(a=>{
+    const e=exps.find(x=>x.id===a.exp)||{};
+    const q=x=>'"'+String(x||'').replace(/"/g,'""')+'"';
+    return [q(a.exp),q(a.fa),q(a.fc),q(a.mat),q(a.juz),q(e.actor||''),q(e.dem||''),q(a.txt),q(a.nota)].join(',');
+  });
+  const blob=new Blob(['﻿'+head+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Acuerdos_Olea_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); toast('CSV exportado','ok');
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+renderDash();
+</script>
+</body>
+</html>
